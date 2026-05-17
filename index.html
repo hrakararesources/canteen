@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akara Canteen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1B3F8B; --blue-dark: #122D6B; --blue-light: #EEF2FB;
+    --yellow: #F5C400; --yellow-light: #FFF9E0;
+    --white: #fff; --gray: #f4f5f7; --text: #1a1a2e; --muted: #6b7280; --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Prompt', sans-serif; background: var(--gray); color: var(--text); }
+
+  .hero { background: var(--blue); }
+  .hero-top { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem 0.75rem; border-bottom: 3px solid var(--yellow); }
+  .hero-left { display: flex; align-items: center; gap: 10px; }
+  .brand-box { background: var(--yellow); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .brand-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 700; color: #fff; letter-spacing: .05em; }
+  .brand-name span { color: var(--yellow); }
+  .admin-btn { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); border-radius: 7px; color: rgba(255,255,255,.75); font-size: .72rem; padding: 5px 11px; cursor: pointer; font-family: 'Prompt', sans-serif; transition: all .2s; }
+  .admin-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
+  .hero-bar { background: var(--blue-dark); padding: .55rem 1.5rem; display: flex; align-items: center; justify-content: center; gap: .5rem; flex-wrap: wrap; }
+  .hero-bar span { font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.45); }
+  .dot { width: 5px; height: 5px; background: var(--yellow); border-radius: 50%; }
+
+  .home-view, .menu-view { padding: 1.5rem; }
+  .section-eyebrow { text-align: center; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+  .section-heading { text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--blue); margin-bottom: 1.5rem; }
+
+  .canteens-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; max-width: 480px; margin: 0 auto; }
+  .canteen-card { background: var(--white); border-radius: 16px; border: 2px solid transparent; padding: 1.5rem 1rem; text-align: center; transition: all .2s; box-shadow: 0 2px 8px rgba(27,63,139,.08); position: relative; }
+  .canteen-card.clickable { cursor: pointer; }
+  .canteen-card.clickable:hover { border-color: var(--blue); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(27,63,139,.15); }
+  .canteen-card.closed { opacity: .45; filter: grayscale(60%); cursor: not-allowed; border-color: #f5c6c6; }
+  .canteen-card.closed:hover { transform: none; box-shadow: 0 2px 8px rgba(27,63,139,.08); }
+  .card-avatar { width: 76px; height: 76px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 1rem; }
+  .card-avatar.blue-av { background: var(--blue-light); border: 3px solid var(--blue); }
+  .card-avatar.yellow-av { background: var(--yellow-light); border: 3px solid var(--yellow); }
+  .canteen-card.closed .card-avatar { border-color: #ccc; }
+  .card-name-th { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .card-name-en { font-family: 'Barlow Condensed', sans-serif; font-size: .9rem; font-weight: 600; letter-spacing: .12em; color: var(--muted); }
+  .card-pill { display: inline-flex; align-items: center; gap: 5px; margin-top: .75rem; font-size: .68rem; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+  .pill-open { background: #e8f5e9; color: #2e7d32; }
+  .pill-closed { background: #fdecea; color: #c62828; border: 1px solid #f5c6c6; }
+  .live-dot { width: 6px; height: 6px; background: #4caf50; border-radius: 50%; animation: pulse 2s infinite; }
+  .closed-dot { width: 6px; height: 6px; background: #c62828; border-radius: 50%; }
+  .closed-ribbon { position: absolute; top: 12px; right: -4px; background: #c62828; color: #fff; font-size: .6rem; font-weight: 700; padding: 3px 10px 3px 8px; border-radius: 4px 0 0 4px; letter-spacing: .08em; }
+  .closed-ribbon::after { content: ''; position: absolute; right: 0; bottom: -6px; border-left: 4px solid #8b0000; border-bottom: 6px solid transparent; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .hidden { display: none !important; }
+  .back-btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1.5px solid var(--blue); border-radius: 8px; padding: 7px 14px; font-size: .82rem; color: var(--blue); cursor: pointer; font-family: 'Prompt', sans-serif; font-weight: 500; margin-bottom: 1.25rem; transition: all .2s; }
+  .back-btn:hover { background: var(--blue); color: #fff; }
+
+  .menu-header { display: flex; align-items: center; gap: 1rem; background: var(--white); border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 2px 8px rgba(27,63,139,.07); border-left: 5px solid var(--blue); }
+  .menu-header.yellow-border { border-left-color: var(--yellow); }
+  .menu-shop-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+  .menu-shop-icon.blue-icon { background: var(--blue-light); }
+  .menu-shop-icon.yellow-icon { background: var(--yellow-light); }
+  .menu-shop-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; font-weight: 700; color: var(--blue); }
+  .menu-shop-sub { font-size: .75rem; color: var(--muted); }
+
+  .period-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--blue-light); color: var(--blue); font-size: .72rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 1rem; }
+
+  .week-table-wrap { overflow-x: auto; border-radius: 14px; box-shadow: 0 2px 8px rgba(27,63,139,.07); }
+  table { width: 100%; border-collapse: collapse; background: var(--white); font-size: .8rem; min-width: 520px; }
+  thead tr { background: var(--blue); }
+  .yellow-head thead tr { background: var(--yellow); }
+  thead th { color: #fff; font-weight: 600; padding: .65rem .75rem; text-align: center; font-size: .72rem; letter-spacing: .06em; }
+  .yellow-head thead th { color: var(--blue-dark); }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f9fafb; }
+  .day-cell { background: var(--blue-light); font-weight: 700; color: var(--blue); text-align: center; padding: .6rem .5rem; white-space: nowrap; font-size: .78rem; width: 58px; }
+  .yellow-head .day-cell { background: var(--yellow-light); color: var(--blue-dark); }
+  td { padding: .6rem .75rem; vertical-align: top; color: var(--text); line-height: 1.45; }
+  td .en { font-size: .7rem; color: var(--muted); display: block; margin-top: 1px; }
+  .topping-row td { background: #fafafa; font-size: .7rem; color: var(--muted); padding: .35rem .75rem; border-bottom: 2px solid var(--border); }
+  .topping-row .day-cell { background: #f1f1f1; color: var(--muted); }
+  .no-service { color: #ccc; text-align: center; font-style: italic; font-size: .75rem; }
+  .special-badge { display: inline-block; background: var(--yellow); color: var(--blue-dark); font-size: .62rem; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: 4px; vertical-align: middle; }
+  .note-box { background: var(--blue-light); border-left: 4px solid var(--blue); border-radius: 8px; padding: .75rem 1rem; margin-top: 1rem; font-size: .78rem; color: var(--blue-dark); }
+  .note-box.yellow-note { background: var(--yellow-light); border-left-color: var(--yellow); }
+
+  /* LOADING / ERROR */
+  .loading-wrap { text-align: center; padding: 2.5rem 1rem; }
+  .spinner { width: 34px; height: 34px; border: 3px solid var(--blue-light); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: .82rem; color: var(--muted); }
+  .err-box { background: #fdecea; border: 1px solid #f5c6c6; border-radius: 10px; padding: 1rem; text-align: center; font-size: .8rem; color: #c62828; margin: .5rem 0; line-height: 1.6; }
+
+  /* ADMIN OVERLAY */
+  .overlay { display: none; background: var(--gray); padding: 1.25rem; }
+  .overlay.show { display: block; }
+  .apanel { background: var(--white); border-radius: 14px; width: 100%; max-width: 400px; box-shadow: 0 4px 16px rgba(27,63,139,.12); overflow: hidden; margin: 0 auto; }
+  .ahdr { background: var(--blue); padding: 1.1rem 1.4rem; display: flex; align-items: center; justify-content: space-between; }
+  .atitle { font-family: 'Barlow Condensed', sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff; letter-spacing: .05em; }
+  .aclose { background: rgba(255,255,255,.15); border: none; border-radius: 7px; width: 30px; height: 30px; color: #fff; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .aclose:hover { background: rgba(255,255,255,.25); }
+  .pin-sec { padding: 1.4rem; }
+  .pin-lbl { font-size: .82rem; color: var(--muted); margin-bottom: .7rem; text-align: center; }
+  .pin-dots { display: flex; justify-content: center; gap: 9px; margin-bottom: 1.1rem; }
+  .pdot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--border); background: var(--white); transition: all .2s; }
+  .pdot.f { background: var(--blue); border-color: var(--blue); }
+  .pin-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; max-width: 220px; margin: 0 auto .85rem; }
+  .pk { background: var(--gray); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'Prompt', sans-serif; color: var(--text); transition: all .15s; }
+  .pk:hover { background: var(--blue-light); border-color: var(--blue); color: var(--blue); }
+  .pk:active { transform: scale(.95); }
+  .pk.del { font-size: .85rem; color: var(--muted); }
+  .pin-err { text-align: center; font-size: .73rem; color: #c62828; margin-top: .4rem; min-height: 1.1rem; }
+  .ctrl-sec { padding: 1.2rem 1.4rem; }
+  .sec-lbl { font-size: .65rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: .85rem; font-weight: 600; }
+  .shop-row { display: flex; align-items: center; justify-content: space-between; background: var(--gray); border-radius: 10px; padding: .8rem .95rem; margin-bottom: .55rem; }
+  .sr-left { display: flex; align-items: center; gap: 9px; }
+  .sr-emoji { font-size: 1.2rem; }
+  .sr-name { font-weight: 600; font-size: .85rem; }
+  .sr-sub { font-size: .68rem; color: var(--muted); }
+  .tw { display: flex; align-items: center; gap: 7px; }
+  .tlbl { font-size: .68rem; font-weight: 600; }
+  .tlbl.on { color: #2e7d32; } .tlbl.off { color: #c62828; }
+  .toggle { position: relative; width: 40px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: #e0e0e0; border-radius: 22px; cursor: pointer; transition: .3s; }
+  .slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  input:checked + .slider { background: #2e7d32; }
+  input:checked + .slider::before { transform: translateX(18px); }
+  .save-note { text-align: center; font-size: .67rem; color: var(--muted); margin-top: .7rem; }
+  .refresh-btn { width: 100%; margin-top: .75rem; padding: .65rem; background: var(--blue-light); color: var(--blue); border: 1.5px solid var(--blue); border-radius: 9px; font-family: 'Prompt', sans-serif; font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .refresh-btn:hover { background: var(--blue); color: #fff; }
+  .updated-tag { text-align: center; font-size: .65rem; color: var(--muted); margin-top: .5rem; }
+  .alogout { width: 100%; margin-top: .5rem; padding: .65rem; border: 1.5px solid var(--border); border-radius: 9px; background: transparent; color: var(--muted); font-family: 'Prompt', sans-serif; font-size: .78rem; cursor: pointer; transition: all .2s; }
+  .alogout:hover { border-color: #c62828; color: #c62828; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="hero">
+    <div class="hero-top">
+      <div class="hero-left">
+        <div class="brand-box">&#127869;</div>
+        <div class="brand-name">akara <span>CANTEEN</span></div>
+      </div>
+      <button class="admin-btn" onclick="showAdmin()">&#9881; จัดการ</button>
+    </div>
+    <div class="hero-bar">
+      <span>AKARA RESOURCES</span><div class="dot"></div>
+      <span>ระบบเมนูอาหารพนักงาน</span><div class="dot"></div>
+      <span>STAFF MEAL SERVICES</span>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="home-view" id="homeView">
+    <div class="section-eyebrow">TAB TO VIEW MENU</div>
+    <div class="section-heading">เลือกร้านอาหาร</div>
+    <div class="canteens-grid" id="canteensGrid">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        <div class="loading-text">กำลังโหลดเมนูสัปดาห์นี้...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div class="menu-view hidden" id="menuView">
+    <button class="back-btn" onclick="goHome()">&#8592; กลับเลือกร้าน</button>
+    <div class="menu-header" id="menuHeader"></div>
+    <div id="menuContent"></div>
+  </div>
+</div>
+
+<!-- ADMIN OVERLAY -->
+<div class="overlay" id="adminOverlay">
+  <div class="apanel">
+    <div class="ahdr">
+      <div class="atitle">&#9881; Admin Panel</div>
+      <button class="aclose" onclick="closeAdmin()">&#10005;</button>
+    </div>
+    <div id="pinScreen" class="pin-sec">
+      <div class="pin-lbl">กรอก PIN เพื่อเข้าสู่ระบบ</div>
+      <div class="pin-dots" id="pinDots"></div>
+      <div class="pin-grid">
+        <button class="pk" onclick="pk('1')">1</button>
+        <button class="pk" onclick="pk('2')">2</button>
+        <button class="pk" onclick="pk('3')">3</button>
+        <button class="pk" onclick="pk('4')">4</button>
+        <button class="pk" onclick="pk('5')">5</button>
+        <button class="pk" onclick="pk('6')">6</button>
+        <button class="pk" onclick="pk('7')">7</button>
+        <button class="pk" onclick="pk('8')">8</button>
+        <button class="pk" onclick="pk('9')">9</button>
+        <button class="pk"></button>
+        <button class="pk" onclick="pk('0')">0</button>
+        <button class="pk del" onclick="pdel()">&#9003;</button>
+      </div>
+      <div class="pin-err" id="pinErr"></div>
+    </div>
+    <div id="ctrlScreen" class="ctrl-sec hidden">
+      <div class="sec-lbl">เปิด / ปิด ร้านอาหาร</div>
+      <div class="shop-row">
+        <div class="sr-left">
+          <span class="sr-emoji">&#127861;</span>
+          <div><div class="sr-name">ร้านสุนิสา</div><div class="sr-sub">SUNISA</div></div>
+        </div>
+        <div class="tw">
+          <span class="tlbl on" id="lbl-sunisa">เปิด</span>
+          <label class="toggle"><input type="checkbox" id="tog-sunisa" checked onchange="toggleShop('sunisa')"><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="shop-row">
+        <div class="sr-left">
+          <span class="sr-emoji">&#129368;</span>
+          <div><div class="sr-name">ร้านสมควร</div><div class="sr-sub">SOMKHUAN</div></div>
+        </div>
+        <div class="tw">
+          <span class="tlbl on" id="lbl-somkhuan">เปิด</span>
+          <label class="toggle"><input type="checkbox" id="tog-somkhuan" checked onchange="toggleShop('somkhuan')"><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="save-note">&#10003; การเปลี่ยนแปลงมีผลทันที</div>
+      <button class="refresh-btn" onclick="refreshMenu()">&#8635; โหลดเมนูสัปดาห์นี้</button>
+      <button class="refresh-btn" style="margin-top:.5rem;background:#fff9e0;color:#1B3F8B;border-color:#F5C400;" onclick="previewNextWeek()">&#128065; ดูตัวอย่างสัปดาห์หน้า</button>
+      <div class="updated-tag" id="updatedTag"></div>
+      <div id="previewBadge" style="display:none;text-align:center;margin:.5rem 0;padding:5px 12px;background:#fff3cd;border:1px solid #ffc107;border-radius:20px;font-size:.72rem;color:#856404;">&#128065; กำลังดูตัวอย่างสัปดาห์หน้า — ยังไม่ใช่เมนูจริง</div>
+      <button class="alogout" onclick="adminLogout()">ออกจากระบบ Admin</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// แก้ค่านี้: ใส่ URL ของ Apps Script ที่ Deploy แล้ว
+// ============================================================
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycltalMcRdFuD6mzxLUR2MYBGia3vZz1G1mK2lJRYt1yJQFvZ9zUq0YaaEQ0CpMgfw/exec';
+// ============================================================
+var PIN = '7568'; // เปลี่ยน PIN ได้ที่นี่
+
+var SHOP_META = {
+  'ร้านสุนิสา': { nameEn:'SUNISA', icon:'&#127861;', iconClass:'blue-icon', borderClass:'', tableClass:'', av:'blue-av', togId:'sunisa' },
+  'ร้านสมควร':  { nameEn:'SOMKHUAN', icon:'&#129368;', iconClass:'yellow-icon', borderClass:'yellow-border', tableClass:'yellow-head', av:'yellow-av', togId:'somkhuan' }
+};
+var DAY_TH = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+var shopStatus = { sunisa: true, somkhuan: true };
+var menuData = {};
+var pinVal = '', adminIn = false;
+
+// ===== FETCH FROM SHEETS =====
+function fetchMenu(week) {
+  if (!week) week = 'current';
+  document.getElementById('canteensGrid').innerHTML =
+    '<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">กำลังโหลดเมนูสัปดาห์นี้...</div></div>';
+  fetch(SCRIPT_URL + '?action=getMenu&week=' + week)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.success) throw new Error('error');
+      menuData = data.shops;
+      var tag = document.getElementById('updatedTag');
+      if (tag) tag.textContent = 'อัปเดต: ' + new Date(data.updatedAt).toLocaleTimeString('th-TH');
+      renderHome();
+    })
+    .catch(function() {
+      document.getElementById('canteensGrid').innerHTML =
+        '<div class="err-box">&#10060; ไม่สามารถโหลดเมนูได้<br><span style="font-size:.72rem">กรุณาตรวจสอบการเชื่อมต่อ หรือติดต่อผู้ดูแลระบบ</span></div>';
+    });
+}
+
+// ===== RENDER HOME (เหมือนโครงสร้างเดิม) =====
+function renderHome() {
+  var html = '';
+  Object.keys(SHOP_META).forEach(function(name) {
+    var m = SHOP_META[name];
+    var manualOpen = shopStatus[m.togId];
+    // เช็คว่าวันนี้มีเมนูไหม
+    var todayStr = (function() {
+      var t = new Date();
+      return t.getDate() + '/' + (t.getMonth() + 1);
+    })();
+    var hasData = menuData[name] && menuData[name].days && menuData[name].days.some(function(d) {
+      return d.date === todayStr && !d.noSvc;
+    });
+    // ปิดอัตโนมัติถ้าไม่มีเมนูในระบบ หรือ Admin ปิดเอง
+    var isOpen = manualOpen && hasData;
+    var canOpen = isOpen;
+    html +=
+      '<div class="canteen-card' + (canOpen ? ' clickable' : ' closed') + '"' +
+      (canOpen ? ' onclick="openMenu(\'' + name + '\')"' : '') + '>' +
+      (!isOpen ? '<div class="closed-ribbon">CLOSED</div>' : '') +
+      '<div class="card-avatar ' + m.av + '">' + m.icon + '</div>' +
+      '<div class="card-name-th">' + name + '</div>' +
+      '<div class="card-name-en">' + m.nameEn + '</div>' +
+      (isOpen
+        ? '<div class="card-pill pill-open"><div class="live-dot"></div>เปิดให้บริการ</div>'
+        : '<div class="card-pill pill-closed"><div class="closed-dot"></div>หยุดให้บริการ</div>') +
+      '</div>';
+  });
+  document.getElementById('canteensGrid').innerHTML = html;
+}
+
+// ===== OPEN MENU (โครงสร้างเดิมทุกอย่าง) =====
+function openMenu(name) {
+  var s = menuData[name];
+  var m = SHOP_META[name];
+  document.getElementById('homeView').classList.add('hidden');
+  document.getElementById('menuView').classList.remove('hidden');
+
+  document.getElementById('menuHeader').className = 'menu-header ' + m.borderClass;
+  document.getElementById('menuHeader').innerHTML =
+    '<div class="menu-shop-icon ' + m.iconClass + '">' + m.icon + '</div>' +
+    '<div><div class="menu-shop-name">' + name + '</div>' +
+    '<div class="menu-shop-sub">' + m.nameEn + ' · เมนูประจำสัปดาห์</div></div>';
+
+  var rows = s.days.map(function(d) {
+    var dt = new Date(d.fullDate || d.date);
+    var dayName = isNaN(dt) ? d.date : DAY_TH[dt.getDay()];
+    var noSvc = d.noSvc || !d.soup;
+    function cell(arr) {
+      return noSvc
+        ? '<td class="no-service">No Service</td>'
+        : '<td>' + (arr ? arr[0] : '-') + '<span class="en">' + (arr ? arr[1] : '') + '</span></td>';
+    }
+    var specialBadge = d.special
+      ? '<span class="special-badge">&#9733; Special</span> <span style="font-size:.65rem;color:var(--muted)">' + d.special + '</span>'
+      : '';
+    return '<tr>' +
+      '<td class="day-cell"><strong>' + dayName + '</strong><br><span style="font-size:.68rem;font-weight:400">' + d.date + '</span></td>' +
+      cell(d.soup) + cell(d.spicy) + cell(d.mild) + cell(d.extra) +
+      '</tr>' +
+      '<tr class="topping-row">' +
+      '<td class="day-cell" style="font-size:.6rem">Topping</td>' +
+      '<td colspan="4">&#127859; ' + d.topping + ' ' + specialBadge + '</td>' +
+      '</tr>';
+  }).join('');
+
+  document.getElementById('menuContent').innerHTML =
+    '<div class="period-badge">&#128197; ' + (s.period || '') + '</div>' +
+    '<div class="week-table-wrap"><table class="' + m.tableClass + '">' +
+    '<thead><tr><th>Day</th><th>ต้ม (SOUP)</th><th>เผ็ด (SPICY)</th><th>ไม่เผ็ด (MILD)</th><th>เสริม (EXTRA)</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table></div>' +
+    '<div class="note-box' + (name === 'ร้านสมควร' ? ' yellow-note' : '') + '">' +
+    '&#128221; <strong>หมายเหตุ:</strong> เมนูก๋วยเตี๋ยวมีบริการทุกวัน ยกเว้นวันที่มีเมนูพิเศษ<br>' +
+    '<span style="color:var(--muted);font-size:.72rem">Noodle menu available daily except special days</span></div>';
+}
+
+function goHome() {
+  document.getElementById('menuView').classList.add('hidden');
+  document.getElementById('homeView').classList.remove('hidden');
+}
+
+// ===== ADMIN =====
+function showAdmin() {
+  document.getElementById('homeView').classList.add('hidden');
+  document.getElementById('menuView').classList.add('hidden');
+  document.getElementById('adminOverlay').classList.add('show');
+  adminIn ? showCtrl() : showPin();
+  window.scrollTo(0, 0);
+}
+function closeAdmin() {
+  document.getElementById('adminOverlay').classList.remove('show');
+  document.getElementById('homeView').classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+function showPin() {
+  document.getElementById('pinScreen').classList.remove('hidden');
+  document.getElementById('ctrlScreen').classList.add('hidden');
+  pinVal = ''; updDots(); document.getElementById('pinErr').textContent = '';
+}
+function showCtrl() {
+  document.getElementById('pinScreen').classList.add('hidden');
+  document.getElementById('ctrlScreen').classList.remove('hidden');
+  document.getElementById('tog-sunisa').checked = shopStatus.sunisa;
+  document.getElementById('tog-somkhuan').checked = shopStatus.somkhuan;
+  updLbl('sunisa'); updLbl('somkhuan');
+}
+function pk(k) {
+  if (!k || pinVal.length >= 4) return;
+  pinVal += k; updDots();
+  if (pinVal.length === 4) {
+    setTimeout(function() {
+      if (pinVal === PIN) { adminIn = true; showCtrl(); }
+      else { document.getElementById('pinErr').textContent = 'PIN ไม่ถูกต้อง ลองใหม่อีกครั้ง'; pinVal = ''; updDots(); }
+    }, 200);
+  }
+}
+function pdel() { pinVal = pinVal.slice(0,-1); updDots(); document.getElementById('pinErr').textContent = ''; }
+function updDots() {
+  document.getElementById('pinDots').innerHTML = [0,1,2,3].map(function(i) {
+    return '<div class="pdot' + (i < pinVal.length ? ' f' : '') + '"></div>';
+  }).join('');
+}
+function toggleShop(id) { shopStatus[id] = document.getElementById('tog-' + id).checked; updLbl(id); renderHome(); }
+function updLbl(id) { var el = document.getElementById('lbl-' + id), o = shopStatus[id]; el.textContent = o ? 'เปิด' : 'ปิด'; el.className = 'tlbl ' + (o ? 'on' : 'off'); }
+function adminLogout() {
+  adminIn = false;
+  closeAdmin();
+}
+function refreshMenu() {
+  document.getElementById('previewBadge').style.display = 'none';
+  fetchMenu('current');
+  closeAdmin();
+}
+
+function previewNextWeek() {
+  closeAdmin();
+  document.getElementById('previewBadge').style.display = 'block';
+  fetchMenu('next');
+}
+
+fetchMenu('current');
+</script>
+</body>
+</html>
