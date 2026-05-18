@@ -2,13 +2,10 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="max-age=300">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Akara Canteen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --blue: #1B3F8B; --blue-dark: #122D6B; --blue-light: #EEF2FB;
@@ -87,6 +84,10 @@
   .no-service { color: #ccc; text-align: center; font-style: italic; font-size: .75rem; }
   .special-badge { display: inline-block; background: var(--yellow); color: var(--blue-dark); font-size: .62rem; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: 4px; vertical-align: middle; }
   .note-box { background: var(--blue-light); border-left: 4px solid var(--blue); border-radius: 8px; padding: .75rem 1rem; margin-top: 1rem; font-size: .78rem; color: var(--blue-dark); }
+  .save-menu-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: .85rem; padding: .8rem 1rem; background: var(--blue); color: #fff; border: none; border-radius: 10px; font-family: 'Prompt', sans-serif; font-size: .88rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background .2s; }
+  .save-menu-btn:hover { background: var(--blue-dark); }
+  .save-menu-btn.yellow { background: var(--yellow); color: var(--blue-dark); }
+  .save-menu-btn.yellow:hover { background: var(--yellow-dark, #d4a800); }
   .note-box.yellow-note { background: var(--yellow-light); border-left-color: var(--yellow); }
 
   /* LOADING / ERROR */
@@ -207,7 +208,7 @@
       <div class="sec-lbl">เปิด / ปิด ร้านอาหาร</div>
       <div class="shop-row">
         <div class="sr-left">
-          <span class="sr-emoji">&#129953;</span>
+          <span class="sr-emoji">&#127861;</span>
           <div><div class="sr-name">ร้านสุนิสา</div><div class="sr-sub">SUNISA</div></div>
         </div>
         <div class="tw">
@@ -217,7 +218,7 @@
       </div>
       <div class="shop-row">
         <div class="sr-left">
-          <span class="sr-emoji">&#129953;</span>
+          <span class="sr-emoji">&#129368;</span>
           <div><div class="sr-name">ร้านสมควร</div><div class="sr-sub">SOMKHUAN</div></div>
         </div>
         <div class="tw">
@@ -243,29 +244,23 @@ var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycltalMcRdFuD6mzxLUR2
 // ============================================================
 var PIN = '7568'; // เปลี่ยน PIN ได้ที่นี่
 
+var DRIVE_LINKS = {
+  'ร้านสุนิสา': 'https://drive.google.com/file/d/1UbOs140go6xrmNfJ4BmHqyQvO-kyrKfA/view?usp=sharing',
+  'ร้านสมควร':  'https://drive.google.com/file/d/1sQ1TOJme_b2qWZc3D8yLCDLj1LYmXgxd/view?usp=sharing'
+};
+
 var SHOP_META = {
-  'ร้านสุนิสา': { nameEn:'SUNISA', icon:'&#129953;', iconClass:'blue-icon', borderClass:'', tableClass:'', av:'blue-av', togId:'sunisa' },
-  'ร้านสมควร':  { nameEn:'SOMKHUAN', icon:'&#129953;', iconClass:'yellow-icon', borderClass:'yellow-border', tableClass:'yellow-head', av:'yellow-av', togId:'somkhuan' }
+  'ร้านสุนิสา': { nameEn:'SUNISA', icon:'&#127861;', iconClass:'blue-icon', borderClass:'', tableClass:'', av:'blue-av', togId:'sunisa' },
+  'ร้านสมควร':  { nameEn:'SOMKHUAN', icon:'&#129368;', iconClass:'yellow-icon', borderClass:'yellow-border', tableClass:'yellow-head', av:'yellow-av', togId:'somkhuan' }
 };
 var DAY_TH = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
 var shopStatus = { sunisa: true, somkhuan: true };
 var menuData = {};
 var pinVal = '', adminIn = false;
-var menuCache = {};
 
 // ===== FETCH FROM SHEETS =====
 function fetchMenu(week) {
   if (!week) week = 'current';
-
-  // เช็ค cache ก่อน — ถ้าโหลดไปแล้วไม่เกิน 5 นาที ไม่ต้องโหลดซ้ำ
-  var now = Date.now();
-  var cacheKey = 'menu_' + week;
-  if (menuCache[cacheKey] && (now - menuCache[cacheKey].time) < 5 * 60 * 1000) {
-    menuData = menuCache[cacheKey].data;
-    renderHome();
-    return;
-  }
-
   document.getElementById('canteensGrid').innerHTML =
     '<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">กำลังโหลดเมนูสัปดาห์นี้...</div></div>';
   fetch(SCRIPT_URL + '?action=getMenu&week=' + week)
@@ -273,7 +268,6 @@ function fetchMenu(week) {
     .then(function(data) {
       if (!data.success) throw new Error('error');
       menuData = data.shops;
-      menuCache['menu_' + week] = { data: data.shops, time: Date.now() };
       var tag = document.getElementById('updatedTag');
       if (tag) tag.textContent = 'อัปเดต: ' + new Date(data.updatedAt).toLocaleTimeString('th-TH');
       renderHome();
@@ -358,7 +352,9 @@ function openMenu(name) {
     '<tbody>' + rows + '</tbody></table></div>' +
     '<div class="note-box' + (name === 'ร้านสมควร' ? ' yellow-note' : '') + '">' +
     '&#128221; <strong>หมายเหตุ:</strong> เมนูก๋วยเตี๋ยวมีบริการทุกวัน ยกเว้นวันที่มีเมนูพิเศษ<br>' +
-    '<span style="color:var(--muted);font-size:.72rem">Noodle menu available daily except special days</span></div>';
+    '<span style="color:var(--muted);font-size:.72rem">Noodle menu available daily except special days</span></div>' +
+    '<a href="' + DRIVE_LINKS[name] + '" class="save-menu-btn' + (name === 'ร้านสมควร' ? ' yellow' : '') + '" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;">' +
+    '&#128190; บันทึกเมนูประจำสัปดาห์</a>';
 }
 
 function goHome() {
